@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Study Planner with Charts & Reminders ✨</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333; 
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.97); /* Slightly more opaque */
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            gap: 15px; 
+            flex-wrap: wrap; 
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f0f2f5, #e6e9ed);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex-grow: 1; 
+            min-width: 150px; 
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            margin: 40px 0 20px 0; /* Increased top margin */
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .table-container {
+            margin-bottom: 40px;
+            border-radius: 15px;
+            overflow-x: auto; 
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            min-width: 600px; 
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+
+        .time-slot {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            font-weight: bold;
+            color: #2d3748;
+            width: 140px;
+        }
+
+        .duration {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #744210;
+            font-weight: 600;
+            text-align: center;
+            width: 100px;
+        }
+
+        .activity-type-cell { 
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .primary-focus-cell { 
+            /* Default, will be overridden by subject-specific styles if data-subject is present */
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+            color: #38761d;
+            font-weight: 600;
+        }
+        /* Subject specific styling */
+        .primary-focus-cell[data-subject="DATA ANALYTICS/PBI"] { background: linear-gradient(135deg, #a0c4ff 0%, #c1d8ff 100%) !important; color: #003366 !important; }
+        .primary-focus-cell[data-subject="PYTHON"] { background: linear-gradient(135deg, #ffd700 0%, #ffe066 100%) !important; color: #805500 !important; }
+        .primary-focus-cell[data-subject="BLOCKCHAIN"] { background: linear-gradient(135deg, #77dd77 0%, #a1e8a1 100%) !important; color: #004d00 !important; }
+        .primary-focus-cell[data-subject="BANKING/FINANCE"] { background: linear-gradient(135deg, #ff69b4 0%, #ff85c1 100%) !important; color: #800040 !important; }
+        .primary-focus-cell[data-subject="Mixed Review"] { background: linear-gradient(135deg, #d8bfd8 0%, #e6e6fa 100%) !important; color: #4b0082 !important; }
+        .primary-focus-cell[data-subject="Community/Cert Prep"] { background: linear-gradient(135deg, #bdb76b 0%, #f0e68c 100%) !important; color: #556b2f !important; }
+
+
+        .notes-cell {
+            background: #f7fafc;
+            width: 300px; 
+            position: relative;
+        }
+
+        .notes-input {
+            width: 100%;
+            min-height: 60px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 14px;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: white;
+            margin-bottom: 5px; 
+        }
+
+        .notes-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .gemini-button {
+            background: linear-gradient(135deg, #69ff97 0%, #00e4ff 100%);
+            color: #004d40;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: inline-block; 
+            margin-top: 5px;
+        }
+        .gemini-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .gemini-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .loader {
+            display: inline-block;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle; 
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .checkbox-container { display: flex; align-items: center; }
+        .custom-checkbox { width: 20px; height: 20px; background: white; border: 2px solid #667eea; border-radius: 5px; margin-right: 10px; cursor: pointer; transition: all 0.3s ease; position: relative; flex-shrink: 0; }
+        .custom-checkbox.checked { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-color: #667eea; }
+        .custom-checkbox.checked::after { content: '✓'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; }
+        .completion-label { font-size: 14px; color: #4a5568; cursor: pointer; }
+
+        .topic-card { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 15px; padding: 20px; margin: 20px 0; box-shadow: 0 8px 20px rgba(252, 182, 159, 0.3); }
+        .topic-title { font-size: 1.3rem; font-weight: bold; color: #744210; margin-bottom: 15px; }
+        .progress-bar { width: 100%; height: 12px; background: rgba(255, 255, 255, 0.3); border-radius: 6px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.5s ease; border-radius: 6px; }
+
+        .week-selector { display: flex; justify-content: center; margin: 20px 0 30px 0; gap: 10px; flex-wrap: wrap; }
+        .week-btn { padding: 12px 24px; border: none; border-radius: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3); }
+        .week-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); }
+        .week-btn.active { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4); }
+
+        /* Chart Styles */
+        #subject-progress-chart-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .chart-bar-item {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .chart-label {
+            width: 150px; /* Adjust as needed */
+            font-size: 0.9rem;
+            color: #333;
+            padding-right: 10px;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .chart-bar-wrapper {
+            flex-grow: 1;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            height: 25px; /* Increased height */
+            overflow: hidden; /* Ensure fill stays within bounds */
+        }
+        .chart-bar-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 5px;
+            text-align: right;
+            padding-right: 8px;
+            color: white;
+            font-size: 0.8rem;
+            line-height: 25px; /* Vertically center text */
+            transition: width 0.5s ease-in-out;
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+
+        /* Reminder Styles */
+        #reminders-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        #reminder-input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+        }
+        #reminder-input-area input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        #reminder-input-area input[type="datetime-local"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        #add-reminder-btn, .reminder-action-btn {
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+        #add-reminder-btn:hover, .reminder-action-btn:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6b4293 100%);
+        }
+        #reminders-list .reminder-item {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            border-left: 4px solid #667eea;
+        }
+        #reminders-list .reminder-item.completed {
+            border-left-color: #28a745; /* Green for completed */
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+         #reminders-list .reminder-item.past-due:not(.completed) {
+            border-left-color: #dc3545; /* Red for past due */
+        }
+        .reminder-text-content { flex-grow: 1; margin-right: 10px; }
+        .reminder-due-date { font-size: 0.8em; color: #6c757d; margin-left: 10px; }
+        .reminder-actions button { margin-left: 5px; font-size:0.8em; padding: 5px 8px;}
+
+        /* In-page Notification Banner */
+        #in-page-notification {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ffc107; /* Warning yellow */
+            color: #333;
+            padding: 15px 20px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #notification-message { font-size: 0.95rem; }
+        #close-notification-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            padding: 0 10px;
+        }
+
+
+        @media (max-width: 768px) {
+            .container { padding: 20px 15px; }
+            table, .topic-card { font-size: 14px; }
+            th, td { padding: 12px 8px; }
+            .notes-input { min-height: 50px; }
+            .stat-card { min-width: 120px; padding:15px; }
+            .stat-number { font-size: 1.5rem; }
+            h1 { font-size: 2rem; }
+            .section-header { font-size: 1.25rem; }
+            .week-btn { padding: 10px 20px; font-size: 0.9rem; }
+            .chart-label { width: 120px; font-size: 0.8rem;}
+            #reminder-input-area { flex-direction: column; }
+            #reminder-input-area input { width: 100%; margin-bottom: 5px;}
+            #reminder-input-area button { width: 100%;}
+        }
+         @media (max-width: 480px) {
+            .stats-container { flex-direction: column; align-items: stretch; }
+            .stat-card { width: 100%; margin-bottom: 10px; }
+            .week-selector { flex-direction: column; align-items: stretch; }
+            .week-btn { width: 100%; margin-bottom: 5px; }
+            .chart-label { text-align: left; width: auto; margin-bottom: 3px;}
+            .chart-bar-item { flex-direction: column; align-items: stretch;}
+            #notification-message { font-size: 0.85rem;}
+            #close-notification-btn { font-size: 1.2rem;}
+        }
+    </style>
+</head>
+<body>
+    <div id="in-page-notification" style="display:none;">
+        <span id="notification-message"></span>
+        <button id="close-notification-btn" onclick="document.getElementById('in-page-notification').style.display='none'">&times;</button>
+    </div>
+
+    <div class="container">
+        <h1>🚀 Interactive Study Planner ✨</h1>
+        
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="totalHours">0</div>
+                <div class="stat-label">Hours Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completionRate">0%</div>
+                <div class="stat-label">Tasks Done</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="streakDays">0</div>
+                <div class="stat-label">Study Streak (Days)</div>
+            </div>
+        </div>
+
+        <div class="week-selector">
+            <button class="week-btn active" id="btn-weekday" onclick="showWeek('weekday')">📅 Weekdays</button>
+            <button class="week-btn" id="btn-weekend" onclick="showWeek('weekend')">🏖️ Weekends</button>
+            <button class="week-btn" id="btn-rotation" onclick="showWeek('rotation')">🔄 Topic Rotation</button>
+            <button class="week-btn" id="btn-progress" onclick="showWeek('progress')">📊 Progress</button>
+            <button class="week-btn" id="btn-reminders" onclick="showWeek('reminders')">🔔 Reminders</button>
+        </div>
+
+        <!-- Weekday Schedule -->
+        <div id="weekday-schedule" class="schedule-section">
+            <div class="section-header">📚 Weekday Schedule (Mon - Fri)</div>            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>⏰ Time Slot</th>
+                            <th>⏱️ Duration</th>
+                            <th>🎯 Activity Type</th>
+                            <th>📖 Primary Focus</th>
+                            <th>✅ Complete</th>
+                            <th>📝 Notes & AI Insights</th>
+                        </tr>
+                    </thead>
+                    <tbody id="weekday-tasks">
+                        <tr data-duration="1.5">
+                            <td class="time-slot">5:00 - 6:30 AM</td>
+                            <td class="duration">1.5 hrs</td>
+                            <td class="activity-type-cell">🏃‍♂️ Personal Care</td>
+                            <td class="primary-focus-cell" data-subject="Personal Care">Exercise & Breakfast</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Add your notes..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this)">✨ Get Insights</button></td>
+                        </tr>
+                        <tr data-duration="3">
+                            <td class="time-slot">7:00 - 10:00 AM</td>
+                            <td class="duration">3 hrs</td>
+                            <td class="activity-type-cell">🧠 Deep Learning</td>
+                            <td class="primary-focus-cell" data-subject="DATA ANALYTICS/PBI">DATA ANALYTICS/PBI</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Focus on DAX, data modeling..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this)">✨ Get Insights</button></td>
+                        </tr>
+                        <tr data-duration="0"> 
+                            <td class="time-slot">10:00 - 11:00 AM</td>
+                            <td class="duration">1 hr</td>
+                            <td class="activity-type-cell">🍽️ Break</td>
+                            <td class="primary-focus-cell" data-subject="Break">Lunch & Quick Review</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Quick review notes..."></textarea></td>
+                        </tr>
+                        <tr data-duration="3">
+                            <td class="time-slot">11:00 AM - 2:00 PM</td>
+                            <td class="duration">3 hrs</td>
+                            <td class="activity-type-cell">🐍 Python Practice</td>
+                            <td class="primary-focus-cell" data-subject="PYTHON">PYTHON</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Python scripts, data manipulation..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this)">✨ Get Insights</button></td>
+                        </tr>
+                        <tr data-duration="0"> 
+                            <td class="time-slot">2:00 - 3:00 PM</td>
+                            <td class="duration">1 hr</td>
+                            <td class="activity-type-cell">☕ Break</td>
+                            <td class="primary-focus-cell" data-subject="Break">Tea Break & Rest</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Energy levels?"></textarea></td>
+                        </tr>
+                        <tr data-duration="3">
+                            <td class="time-slot">3:00 - 6:00 PM</td>
+                            <td class="duration">3 hrs</td>
+                            <td class="activity-type-cell">⛓️ Blockchain Dev</td>
+                            <td class="primary-focus-cell" data-subject="BLOCKCHAIN">BLOCKCHAIN</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Smart contracts, DApp concepts..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this)">✨ Get Insights</button></td>
+                        </tr>
+                        <tr data-duration="1">
+                            <td class="time-slot">6:00 - 7:00 PM</td>
+                            <td class="duration">1 hr</td>
+                            <td class="activity-type-cell">🏦 Finance Study</td>
+                            <td class="primary-focus-cell" data-subject="BANKING/FINANCE">BANKING/FINANCE</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Financial concepts, market analysis..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this)">✨ Get Insights</button></td>
+                        </tr>
+                        <tr data-duration="0"> 
+                            <td class="time-slot">7:00 - 8:00 PM</td>
+                            <td class="duration">1 hr</td>
+                            <td class="activity-type-cell">🍽️ Break</td>
+                            <td class="primary-focus-cell" data-subject="Break">Dinner & Family</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Family time..."></textarea></td>
+                        </tr>
+                        <tr data-duration="2">
+                            <td class="time-slot">8:00 - 10:00 PM</td>
+                            <td class="duration">2 hrs</td>
+                            <td class="activity-type-cell">📚 Mixed Review</td>
+                            <td class="primary-focus-cell" data-subject="Mixed Review">Review Day's Topics</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Review DA, Python, Blockchain, Finance."></textarea><button class="gemini-button" onclick="generateStudyPoints(this, 'Based on my review of Data Analytics, Python, Blockchain, and Finance, suggest key consolidation points: ')">✨ Get Review Points</button></td>
+                        </tr>
+                        <tr data-duration="2">
+                            <td class="time-slot">10:00 - 12:00 AM</td>
+                            <td class="duration">2 hrs</td>
+                            <td class="activity-type-cell">🌐 Community & Prep</td>
+                            <td class="primary-focus-cell" data-subject="Community/Cert Prep">Forums/Cert Prep</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Forum discussions, exam prep..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this)">✨ Get Insights</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Weekend Schedule -->
+        <div id="weekend-schedule" class="schedule-section" style="display: none;">
+            <div class="section-header">🏖️ Weekend Schedule (Sat - Sun)</div>            
+             <div class="table-container">
+                <table>
+                    <thead><tr><th>⏰ Time Slot</th><th>⏱️ Duration</th><th>🎯 Activity Type</th><th>📖 Primary Focus</th><th>✅ Complete</th><th>📝 Notes & AI Insights</th></tr></thead>
+                    <tbody id="weekend-tasks">
+                        <tr data-duration="1.5">
+                            <td class="time-slot">5:00 - 6:30 AM</td><td class="duration">1.5 hrs</td>
+                            <td class="activity-type-cell">🏃‍♂️ Personal Care</td><td class="primary-focus-cell" data-subject="Personal Care">Exercise & Breakfast</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Workout notes..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this)">✨ Get Insights</button></td>
+                        </tr>
+                        <tr data-duration="2">
+                            <td class="time-slot">8:00 - 10:00 AM</td><td class="duration">2 hrs</td>
+                            <td class="activity-type-cell">📊 Weekly Review</td><td class="primary-focus-cell" data-subject="Review">Progress Assessment</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Week's achievements..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this, 'Based on my weekly review notes for Data Analytics, Python, Blockchain, and Finance, suggest key reflection points and priorities for next week: ')">✨ Plan Next Week</button></td>
+                        </tr>
+                         <tr data-duration="0"> 
+                            <td class="time-slot">10:00 - 11:00 AM</td><td class="duration">1 hr</td>
+                            <td class="activity-type-cell">🍽️ Break</td><td class="primary-focus-cell" data-subject="Break">Lunch & Family</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Family time..."></textarea></td>
+                        </tr>
+                        <tr data-duration="3">
+                            <td class="time-slot">11:00 AM - 2:00 PM</td><td class="duration">3 hrs</td>
+                            <td class="activity-type-cell">🐍 Python Project</td><td class="primary-focus-cell" data-subject="PYTHON">PYTHON Project Work</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Dedicated Python project time..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this)">✨ Get Insights</button></td>
+                        </tr>
+                        <tr data-duration="0"> 
+                            <td class="time-slot">2:00 - 3:00 PM</td><td class="duration">1 hr</td>
+                            <td class="activity-type-cell">☕ Break</td><td class="primary-focus-cell" data-subject="Break">Tea Break & Rest</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Midday reflection..."></textarea></td>
+                        </tr>
+                        <tr data-duration="2">
+                            <td class="time-slot">3:00 - 5:00 PM</td><td class="duration">2 hrs</td>
+                            <td class="activity-type-cell">📊 DA/PBI Challenge</td><td class="primary-focus-cell" data-subject="DATA ANALYTICS/PBI">DATA ANALYTICS Challenge</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Power BI challenge..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this)">✨ Get Insights</button></td>
+                        </tr>
+                        <tr data-duration="2">
+                            <td class="time-slot">5:00 - 7:00 PM</td><td class="duration">2 hrs</td>
+                            <td class="activity-type-cell">⛓️ Blockchain Exploration</td><td class="primary-focus-cell" data-subject="BLOCKCHAIN">BLOCKCHAIN Concepts</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Explore new blockchain platforms..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this)">✨ Get Insights</button></td>
+                        </tr>
+                        <tr data-duration="0"> 
+                            <td class="time-slot">7:00 - 8:00 PM</td><td class="duration">1 hr</td>
+                            <td class="activity-type-cell">🍽️ Break</td><td class="primary-focus-cell" data-subject="Break">Dinner & Family</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Weekend dinner..."></textarea></td>
+                        </tr>
+                        <tr data-duration="3">
+                            <td class="time-slot">8:00 - 11:00 PM</td><td class="duration">3 hrs</td>
+                            <td class="activity-type-cell">🏦 Finance Deep Dive</td><td class="primary-focus-cell" data-subject="BANKING/FINANCE">BANKING/FINANCE Project</td>
+                            <td class="checkbox-cell"><div class="checkbox-container"><div class="custom-checkbox" onclick="toggleCheck(this)"></div><span class="completion-label">Mark Done</span></div></td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Finance project, market research..."></textarea><button class="gemini-button" onclick="generateStudyPoints(this)">✨ Get Insights</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Topic Rotation Schedule -->
+        <div id="rotation-schedule" class="schedule-section" style="display: none;">
+            <div class="section-header">🔄 4-Week Topic Rotation</div>
+            <div class="topic-card">
+                <div class="topic-title">📊 Data Analytics & Power BI (25 hrs/week Target)</div>
+                <div class="progress-bar"><div class="progress-fill" id="progress-data"></div></div>
+                <textarea class="notes-input topic-notes" data-topic="data" placeholder="Track Power BI projects..."></textarea>
+                <button class="gemini-button" onclick="generateTopicInsights(this, 'Data Analytics & Power BI')">✨ Get Topic Insights</button>
+            </div>
+            <div class="topic-card">
+                <div class="topic-title">🐍 Python Programming (25 hrs/week Target)</div>
+                <div class="progress-bar"><div class="progress-fill" id="progress-python"></div></div>
+                <textarea class="notes-input topic-notes" data-topic="python" placeholder="Code snippets, libraries..."></textarea>
+                <button class="gemini-button" onclick="generateTopicInsights(this, 'Python Programming')">✨ Get Topic Insights</button>
+            </div>
+            <div class="topic-card">
+                <div class="topic-title">⛓️ Blockchain Technology (15 hrs/week Target)</div>
+                <div class="progress-bar"><div class="progress-fill" id="progress-blockchain"></div></div>
+                <textarea class="notes-input topic-notes" data-topic="blockchain" placeholder="Smart contracts, DeFi concepts..."></textarea>
+                <button class="gemini-button" onclick="generateTopicInsights(this, 'Blockchain Technology')">✨ Get Topic Insights</button>
+            </div>
+            <div class="topic-card">
+                <div class="topic-title">🏦 Banking & Finance (15 hrs/week Target)</div>
+                <div class="progress-bar"><div class="progress-fill" id="progress-finance"></div></div>
+                <textarea class="notes-input topic-notes" data-topic="finance" placeholder="Financial models, case studies..."></textarea>
+                <button class="gemini-button" onclick="generateTopicInsights(this, 'Banking & Finance')">✨ Get Topic Insights</button>
+            </div>
+            <div class="table-container">
+                 <table>
+                    <thead><tr><th>📅 Week</th><th>🌅 Mon</th><th>🌅 Tue</th><th>🌄 Wed</th><th>🌄 Thu</th><th>🌆 Fri</th><th>🏖️ Weekend</th><th>📝 Notes & AI Plan</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td class="time-slot">Wk 1</td><td class="primary-focus-cell" data-subject="DATA ANALYTICS/PBI">Data Analytics</td><td class="primary-focus-cell" data-subject="PYTHON">Python Basics</td><td class="primary-focus-cell" data-subject="BLOCKCHAIN">Blockchain Intro</td><td class="primary-focus-cell" data-subject="BANKING/FINANCE">Finance Theory</td><td class="primary-focus-cell" data-subject="DATA ANALYTICS/PBI">Power BI</td><td class="activity-type-cell">Mixed Project 1</td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Week 1 notes..."></textarea><button class="gemini-button" onclick="generateWeeklyPlan(this, 'Week 1 Focus: Data Analytics, Python Basics, Blockchain Intro, Finance Theory, Power BI, Mixed Project 1')">✨ AI Week Plan</button></td>
+                        </tr>
+                        <tr>
+                            <td class="time-slot">Wk 2</td><td class="primary-focus-cell" data-subject="PYTHON">Python Data Sci</td><td class="primary-focus-cell" data-subject="BLOCKCHAIN">Smart Contracts</td><td class="primary-focus-cell" data-subject="BANKING/FINANCE">Risk Management</td><td class="primary-focus-cell" data-subject="DATA ANALYTICS/PBI">DAX Functions</td><td class="primary-focus-cell" data-subject="PYTHON">Data Viz (Py)</td><td class="activity-type-cell">Mixed Project 2</td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Week 2 notes..."></textarea><button class="gemini-button" onclick="generateWeeklyPlan(this, 'Week 2 Focus: Python Data Sci, Smart Contracts, Risk Management, DAX Functions, Python Data Visualization, Mixed Project 2')">✨ AI Week Plan</button></td>
+                        </tr>
+                        <tr>
+                            <td class="time-slot">Wk 3</td><td class="primary-focus-cell" data-subject="BLOCKCHAIN">DeFi Apps</td><td class="primary-focus-cell" data-subject="BANKING/FINANCE">Fin Dashboards</td><td class="primary-focus-cell" data-subject="DATA ANALYTICS/PBI">Py+Analytics</td><td class="primary-focus-cell" data-subject="PYTHON">Adv Python</td><td class="primary-focus-cell" data-subject="BLOCKCHAIN">Blockchain+Fin</td><td class="activity-type-cell">Major Project</td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Week 3 notes..."></textarea><button class="gemini-button" onclick="generateWeeklyPlan(this, 'Week 3 Focus: DeFi Apps, Financial Dashboards (PBI), Python+Analytics Project, Advanced Python, Blockchain+Finance, Major Project')">✨ AI Week Plan</button></td>
+                        </tr>
+                        <tr>
+                            <td class="time-slot">Wk 4</td><td class="primary-focus-cell" data-subject="DATA ANALYTICS/PBI">Cert Prep (DA)</td><td class="primary-focus-cell" data-subject="PYTHON">Cert Prep (Py)</td><td class="primary-focus-cell">Portfolio Polish</td><td class="activity-type-cell">Networking</td><td class="primary-focus-cell">Mock Exams</td><td class="activity-type-cell">Rest/Recharge</td>
+                            <td class="notes-cell"><textarea class="notes-input" placeholder="Week 4 notes..."></textarea><button class="gemini-button" onclick="generateWeeklyPlan(this, 'Week 4 Focus: DA/PBI Cert Prep, Python Cert Prep, Portfolio Polish, Networking, Mock Exams, Rest/Recharge')">✨ AI Week Plan</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Progress Overview Section -->
+        <div id="progress-schedule" class="schedule-section" style="display:none;">
+            <div class="section-header">📊 Subject Progress Overview</div>
+            <div id="subject-progress-chart-container">
+                <!-- Chart bars will be dynamically inserted here by JavaScript -->
+                <p style="text-align:center; color: #555;">Mark tasks as "Done" in Weekday/Weekend schedules to see progress here.</p>
+            </div>
+        </div>
+
+        <!-- Reminders Section -->
+        <div id="reminders-schedule" class="schedule-section" style="display:none;">
+            <div class="section-header">🔔 Reminders & Deadlines</div>
+            <div id="reminders-section">
+                <div id="reminder-input-area">
+                    <input type="text" id="reminder-text-input" placeholder="Enter reminder details...">
+                    <input type="datetime-local" id="reminder-due-datetime-input">
+                    <button id="add-reminder-btn" onclick="addReminder()">Add Reminder</button>
+                </div>
+                <div id="reminders-list">
+                    <!-- Reminders will be listed here by JavaScript -->
+                    <p style="text-align:center; color: #555;">No reminders yet. Add some!</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Global variable for app version (used for localStorage key)
+        const APP_VERSION = 'studyPlannerData_v3_chartsReminders';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem(APP_VERSION)) {
+                localStorage.setItem(APP_VERSION, JSON.stringify({
+                    tasks: {}, 
+                    topicNotes: {}, 
+                    topicProgress: {}, 
+                    rotationWeeklyNotes: {},
+                    reminders: [], // New: for reminders
+                    subjectHours: {}, // New: for chart data
+                    lastCompletionDate: null, 
+                    streak: 0
+                }));
+            }
+            
+            loadPlannerData(); // Load all data, including reminders and subject hours
+            showWeek('weekday'); // Default view
+
+            document.querySelectorAll('.notes-input').forEach(input => {
+                input.addEventListener('input', savePlannerData);
+                if (input.classList.contains('topic-notes')) {
+                    input.addEventListener('input', updateTopicProgressBars);
+                }
+            });
+            
+            // Initial UI updates
+            updateStats();
+            updateTopicProgressBars();
+            renderSubjectChart(); // Render chart on load
+            displayReminders(); // Display reminders on load
+            checkRemindersForNotification(); // Check for due reminders on load
+        });
+
+        function showWeek(scheduleId) {
+            document.querySelectorAll('.schedule-section').forEach(s => s.style.display = 'none');
+            const activeSection = document.getElementById(scheduleId + '-schedule');
+            if (activeSection) activeSection.style.display = 'block';
+            
+            document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+            const activeButton = document.getElementById('btn-' + scheduleId);
+            if (activeButton) activeButton.classList.add('active');
+
+            // If switching to progress or reminders view, ensure they are up-to-date
+            if (scheduleId === 'progress') renderSubjectChart();
+            if (scheduleId === 'reminders') displayReminders();
+        }
+
+        function toggleCheck(checkboxElement) {
+            checkboxElement.classList.toggle('checked');
+            const label = checkboxElement.nextElementSibling;
+            if (label) label.textContent = checkboxElement.classList.contains('checked') ? 'Done!' : 'Mark Done';
+            
+            // Update subject hours for chart when a task is toggled
+            const row = checkboxElement.closest('tr');
+            const duration = parseFloat(row.getAttribute('data-duration'));
+            const subjectCell = row.querySelector('.primary-focus-cell');
+            const subject = subjectCell ? subjectCell.getAttribute('data-subject') : 'Uncategorized';
+
+            if (!isNaN(duration) && subject !== 'Break' && subject !== 'Personal Care') {
+                 const plannerData = JSON.parse(localStorage.getItem(APP_VERSION));
+                 if (!plannerData.subjectHours) plannerData.subjectHours = {};
+                 
+                 plannerData.subjectHours[subject] = plannerData.subjectHours[subject] || 0;
+                 if (checkboxElement.classList.contains('checked')) {
+                     plannerData.subjectHours[subject] += duration;
+                 } else {
+                     plannerData.subjectHours[subject] -= duration;
+                     if (plannerData.subjectHours[subject] < 0) plannerData.subjectHours[subject] = 0; // Prevent negative hours
+                 }
+                 localStorage.setItem(APP_VERSION, JSON.stringify(plannerData));
+                 renderSubjectChart(); // Re-render chart after updating hours
+            }
+
+            savePlannerData(); // Save all data
+            updateStats(); // Update general stats
+        }
+        
+        function updateStats() {
+            const plannerData = JSON.parse(localStorage.getItem(APP_VERSION));
+            let totalHoursCompleted = 0;
+            let tasksDone = 0;
+            let totalTasks = 0;
+
+            // Calculate totalHoursCompleted from subjectHours for consistency with chart
+            if (plannerData.subjectHours) {
+                totalHoursCompleted = Object.values(plannerData.subjectHours).reduce((sum, hours) => sum + hours, 0);
+            }
+            
+            const taskRows = document.querySelectorAll('#weekday-tasks tr, #weekend-tasks tr');
+            taskRows.forEach(row => {
+                const checkbox = row.querySelector('.custom-checkbox');
+                if (checkbox) { 
+                    totalTasks++;
+                    if (checkbox.classList.contains('checked')) {
+                        tasksDone++;
+                        // Duration is now primarily tracked via subjectHours for study tasks
+                    }
+                }
+            });
+
+            document.getElementById('totalHours').textContent = totalHoursCompleted.toFixed(1);
+            const completionRate = totalTasks > 0 ? ((tasksDone / totalTasks) * 100).toFixed(0) : 0;
+            document.getElementById('completionRate').textContent = completionRate + '%';
+            
+            const today = new Date().toDateString();
+            if (totalTasks > 0 && tasksDone === totalTasks) { 
+                if (plannerData.lastCompletionDate !== today) { 
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    plannerData.streak = (plannerData.lastCompletionDate === yesterday.toDateString()) ? (plannerData.streak || 0) + 1 : 1;
+                    plannerData.lastCompletionDate = today; 
+                }
+            } 
+            
+            document.getElementById('streakDays').textContent = plannerData.streak || 0;
+            localStorage.setItem(APP_VERSION, JSON.stringify(plannerData)); // Save updated streak and lastCompletionDate
+        }
+
+        function updateTopicProgressBars() {
+            const plannerData = JSON.parse(localStorage.getItem(APP_VERSION));
+            if(!plannerData.topicProgress) plannerData.topicProgress = {};
+
+            document.querySelectorAll('.topic-notes').forEach(input => {
+                const topic = input.getAttribute('data-topic');
+                const progressBarFill = document.getElementById('progress-' + topic);
+                if (progressBarFill) {
+                    const textLength = input.value.length;
+                    let progress = Math.min(Math.floor(textLength / 10), 100); 
+                    progressBarFill.style.width = progress + '%';
+                    plannerData.topicProgress[topic] = progress;
+                }
+            });
+            localStorage.setItem(APP_VERSION, JSON.stringify(plannerData));
+        }
+
+        function savePlannerData() {
+            const plannerData = JSON.parse(localStorage.getItem(APP_VERSION)) || {};
+            
+            // Initialize if parts are missing
+            plannerData.tasks = plannerData.tasks || {};
+            plannerData.topicNotes = plannerData.topicNotes || {};
+            plannerData.topicProgress = plannerData.topicProgress || {};
+            plannerData.rotationWeeklyNotes = plannerData.rotationWeeklyNotes || {};
+            plannerData.reminders = plannerData.reminders || [];
+            plannerData.subjectHours = plannerData.subjectHours || {};
+            plannerData.streak = plannerData.streak || 0;
+           
+            document.querySelectorAll('#weekday-tasks tr, #weekend-tasks tr').forEach((row) => {
+                const timeSlotCell = row.querySelector('.time-slot');
+                if (!timeSlotCell) return; 
+                const timeSlot = timeSlotCell.textContent.trim();
+                const scheduleType = row.closest('tbody#weekday-tasks') ? 'wd' : 'we';
+                const id = `${scheduleType}-${timeSlot.replace(/[\s:-]+/g, '_')}`;
+                
+                const checkbox = row.querySelector('.custom-checkbox');
+                const notesInput = row.querySelector('.notes-input');
+                plannerData.tasks[id] = {
+                    checked: checkbox ? checkbox.classList.contains('checked') : false,
+                    notes: notesInput ? notesInput.value : ''
+                };
+            });
+
+            document.querySelectorAll('#rotation-schedule .topic-card .topic-notes').forEach(input => {
+                const topic = input.getAttribute('data-topic');
+                plannerData.topicNotes[topic] = input.value;
+            });
+            
+            document.querySelectorAll('#rotation-schedule .table-container tbody tr').forEach((row, index) => {
+                const notesInput = row.querySelector('.notes-cell .notes-input');
+                if (notesInput) {
+                    const weekId = `rot-week-${index + 1}`;
+                    plannerData.rotationWeeklyNotes[weekId] = notesInput.value;
+                }
+            });
+            // Reminders are saved via addReminder, markReminderDone, deleteReminder
+            // SubjectHours are saved via toggleCheck
+            localStorage.setItem(APP_VERSION, JSON.stringify(plannerData));
+        }
+
+        function loadPlannerData() {
+            const plannerData = JSON.parse(localStorage.getItem(APP_VERSION));
+            if (!plannerData) return;
+
+            if (plannerData.tasks) {
+                document.querySelectorAll('#weekday-tasks tr, #weekend-tasks tr').forEach((row) => {
+                    const timeSlotCell = row.querySelector('.time-slot');
+                    if (!timeSlotCell) return;
+                    const timeSlot = timeSlotCell.textContent.trim();
+                    const scheduleType = row.closest('tbody#weekday-tasks') ? 'wd' : 'we';
+                    const id = `${scheduleType}-${timeSlot.replace(/[\s:-]+/g, '_')}`;
+
+                    if (plannerData.tasks[id]) {
+                        const checkbox = row.querySelector('.custom-checkbox');
+                        const notesInput = row.querySelector('.notes-input');
+                        const label = checkbox ? checkbox.nextElementSibling : null;
+
+                        if (checkbox && plannerData.tasks[id].checked) {
+                            checkbox.classList.add('checked');
+                            if(label) label.textContent = 'Done!';
+                        } else if (checkbox) { 
+                            checkbox.classList.remove('checked');
+                             if(label) label.textContent = 'Mark Done';
+                        }
+                        if (notesInput) notesInput.value = plannerData.tasks[id].notes || '';
+                    }
+                });
+            }
+
+            if (plannerData.topicNotes) {
+                 document.querySelectorAll('#rotation-schedule .topic-card .topic-notes').forEach(input => {
+                    const topic = input.getAttribute('data-topic');
+                    input.value = plannerData.topicNotes[topic] || '';
+                });
+            }
+            updateTopicProgressBars(); // Call after notes are loaded for accurate initial calc
+
+             if (plannerData.rotationWeeklyNotes) {
+                document.querySelectorAll('#rotation-schedule .table-container tbody tr').forEach((row, index) => {
+                     const notesInput = row.querySelector('.notes-cell .notes-input');
+                     if(notesInput){
+                        const weekId = `rot-week-${index + 1}`;
+                        notesInput.value = plannerData.rotationWeeklyNotes[weekId] || '';
+                     }
+                });
+            }
+            // Reminders and Chart data will be loaded by their respective display/render functions
+            updateStats(); // Initial stats based on loaded data
+        }
+
+        // --- Subject Progress Chart ---
+        function renderSubjectChart() {
+            const plannerData = JSON.parse(localStorage.getItem(APP_VERSION));
+            const subjectHours = plannerData.subjectHours || {};
+            const chartContainer = document.getElementById('subject-progress-chart-container');
+            chartContainer.innerHTML = ''; // Clear previous chart
+
+            const subjectsToShow = ["DATA ANALYTICS/PBI", "PYTHON", "BLOCKCHAIN", "BANKING/FINANCE", "Mixed Review", "Community/Cert Prep"];
+            let maxHours = 0;
+            subjectsToShow.forEach(subject => {
+                const hours = subjectHours[subject] || 0;
+                if (hours > maxHours) maxHours = hours;
+            });
+            if (maxHours === 0) maxHours = 10; // Default max if no hours logged, for visual scaling
+
+            if (Object.keys(subjectHours).length === 0 || Object.values(subjectHours).every(h => h === 0)) {
+                 chartContainer.innerHTML = '<p style="text-align:center; color: #555;">Mark tasks as "Done" in Weekday/Weekend schedules to see progress here.</p>';
+                 return;
+            }
+
+            subjectsToShow.forEach(subject => {
+                const hours = subjectHours[subject] || 0;
+                const percentage = (hours / maxHours) * 100;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'chart-bar-item';
+                
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'chart-label';
+                labelDiv.textContent = subject;
+                
+                const barWrapperDiv = document.createElement('div');
+                barWrapperDiv.className = 'chart-bar-wrapper';
+                
+                const barFillDiv = document.createElement('div');
+                barFillDiv.className = 'chart-bar-fill';
+                barFillDiv.style.width = Math.max(5, percentage) + '%'; // Min width for visibility
+                barFillDiv.textContent = `${hours.toFixed(1)} hrs`;
+                
+                // Apply subject-specific color to bar if desired
+                const focusCellClass = `focus-${subject.toLowerCase().replace(/[\s\/]+/g, '-')}`;
+                // This is tricky because CSS linear gradients can't be easily read by JS. 
+                // For simplicity, the bar fill uses the default gradient. A more complex solution would map subjects to specific colors in JS.
+
+
+                barWrapperDiv.appendChild(barFillDiv);
+                itemDiv.appendChild(labelDiv);
+                itemDiv.appendChild(barWrapperDiv);
+                chartContainer.appendChild(itemDiv);
+            });
+        }
+
+
+        // --- Reminders System ---
+        function addReminder() {
+            const textInput = document.getElementById('reminder-text-input');
+            const dueDateTimeInput = document.getElementById('reminder-due-datetime-input');
+            const text = textInput.value.trim();
+            const dueDateTime = dueDateTimeInput.value;
+
+            if (!text || !dueDateTime) {
+                showInPageNotification("Please enter reminder text and a due date/time.", true); // true for error
+                return;
+            }
+
+            const plannerData = JSON.parse(localStorage.getItem(APP_VERSION));
+            const newReminder = {
+                id: 'reminder_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9), // More unique ID
+                text: text,
+                due: new Date(dueDateTime).toISOString(), // Store as ISO string for easier comparison
+                completed: false,
+                notified: false // To track if notification was shown
+            };
+            plannerData.reminders.push(newReminder);
+            localStorage.setItem(APP_VERSION, JSON.stringify(plannerData));
+
+            textInput.value = '';
+            dueDateTimeInput.value = '';
+            displayReminders();
+            checkRemindersForNotification(); // Check immediately if it's due now
+        }
+
+        function displayReminders() {
+            const plannerData = JSON.parse(localStorage.getItem(APP_VERSION));
+            const remindersListDiv = document.getElementById('reminders-list');
+            remindersListDiv.innerHTML = ''; // Clear current list
+
+            if (!plannerData.reminders || plannerData.reminders.length === 0) {
+                remindersListDiv.innerHTML = '<p style="text-align:center; color: #555;">No reminders yet. Add some!</p>';
+                return;
+            }
+            
+            // Sort reminders: active first, then completed; within those, by due date (soonest first for active)
+            const sortedReminders = [...plannerData.reminders].sort((a, b) => {
+                if (a.completed !== b.completed) {
+                    return a.completed ? 1 : -1; // Active (not completed) reminders first
+                }
+                return new Date(a.due) - new Date(b.due); // Then sort by due date
+            });
+
+
+            sortedReminders.forEach(reminder => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'reminder-item';
+                if (reminder.completed) itemDiv.classList.add('completed');
+                
+                const dueDate = new Date(reminder.due);
+                const now = new Date();
+                if (!reminder.completed && dueDate < now) {
+                    itemDiv.classList.add('past-due');
+                }
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'reminder-text-content';
+                textSpan.textContent = reminder.text;
+                
+                const dueSpan = document.createElement('span');
+                dueSpan.className = 'reminder-due-date';
+                dueSpan.textContent = `Due: ${dueDate.toLocaleString()}`;
+
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'reminder-actions';
+
+                const doneButton = document.createElement('button');
+                doneButton.textContent = reminder.completed ? 'Undo' : 'Done';
+                doneButton.className = 'reminder-action-btn';
+                doneButton.onclick = () => markReminderDone(reminder.id);
+                
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'reminder-action-btn';
+                deleteButton.style.background = 'linear-gradient(135deg, #dc3545, #c82333)'; // Reddish for delete
+                deleteButton.onclick = () => deleteReminder(reminder.id);
+
+                itemDiv.appendChild(textSpan);
+                itemDiv.appendChild(dueSpan);
+                actionsDiv.appendChild(doneButton);
+                actionsDiv.appendChild(deleteButton);
+                itemDiv.appendChild(actionsDiv);
+                remindersListDiv.appendChild(itemDiv);
+            });
+        }
+
+        function markReminderDone(reminderId) {
+            const plannerData = JSON.parse(localStorage.getItem(APP_VERSION));
+            const reminderIndex = plannerData.reminders.findIndex(r => r.id === reminderId);
+            if (reminderIndex > -1) {
+                plannerData.reminders[reminderIndex].completed = !plannerData.reminders[reminderIndex].completed;
+                 if (plannerData.reminders[reminderIndex].completed) { // If marked done, clear notified flag too
+                    plannerData.reminders[reminderIndex].notified = false;
+                }
+            }
+            localStorage.setItem(APP_VERSION, JSON.stringify(plannerData));
+            displayReminders();
+        }
+
+        function deleteReminder(reminderId) {
+            const plannerData = JSON.parse(localStorage.getItem(APP_VERSION));
+            plannerData.reminders = plannerData.reminders.filter(r => r.id !== reminderId);
+            localStorage.setItem(APP_VERSION, JSON.stringify(plannerData));
+            displayReminders();
+        }
+        
+        function checkRemindersForNotification() {
+            const plannerData = JSON.parse(localStorage.getItem(APP_VERSION));
+            if (!plannerData.reminders) return;
+            const now = new Date();
+            let notificationShown = false;
+
+            plannerData.reminders.forEach(reminder => {
+                const dueDate = new Date(reminder.due);
+                // Notify if due, not completed, and not already notified for this session or if persistent notification is desired
+                if (!reminder.completed && !reminder.notified && dueDate <= now && !notificationShown) {
+                    showInPageNotification(`Reminder: "${reminder.text}" is due!`);
+                    reminder.notified = true; // Mark as notified to avoid repeated alerts in the same session
+                                              // For true persistent notifications, this logic would be more complex.
+                    notificationShown = true; // Show only one notification at a time on load
+                }
+            });
+            localStorage.setItem(APP_VERSION, JSON.stringify(plannerData)); // Save 'notified' status
+        }
+
+        function showInPageNotification(message, isError = false) {
+            const banner = document.getElementById('in-page-notification');
+            const messageSpan = document.getElementById('notification-message');
+            
+            messageSpan.textContent = message;
+            banner.style.backgroundColor = isError ? '#f8d7da' : '#ffc107'; // Red for error, Yellow for info
+            banner.style.color = isError ? '#721c24' : '#333';
+            banner.style.display = 'flex';
+
+            // Optional: auto-hide after some time
+            // setTimeout(() => {
+            //    if (banner.style.display === 'flex') banner.style.display = 'none';
+            // }, 7000);
+        }
+
+
+        // --- Gemini API Integration (Mostly Unchanged) ---
+        const API_KEY = ""; // Canvas provides this
+
+        async function callGeminiAPI(promptText) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+            const payload = { contents: [{ role: "user", parts: [{ text: promptText }] }] };
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const result = await response.json(); // Parse JSON regardless of response.ok
+                if (!response.ok) {
+                    let errorMessage = `API request failed: ${response.status}. `;
+                    if (result.error && result.error.message) errorMessage += result.error.message;
+                    else if (result.promptFeedback && result.promptFeedback.blockReason) errorMessage += `Blocked: ${result.promptFeedback.blockReason}.`;
+                    else errorMessage += 'Unknown API error.';
+                    console.error("Gemini API Error:", result);
+                    throw new Error(errorMessage);
+                }
+                if (result.promptFeedback && result.promptFeedback.blockReason) return `Suggestion blocked: ${result.promptFeedback.blockReason}. Try rephrasing.`;
+                if (result.candidates && result.candidates[0] && result.candidates[0].finishReason === 'SAFETY') return "Suggestion blocked by safety filters.";
+                if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    console.error("Unexpected API response structure:", result);
+                    return "Could not retrieve suggestions. Format issue.";
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                return `Error: ${error.message}. Check console.`;
+            }
+        }
+
+        async function generateStudyPoints(buttonElement, customPromptPrefix = "") {
+            const row = buttonElement.closest('tr'); if (!row) return;
+            const notesInput = row.querySelector('.notes-input'); if (!notesInput) return;
+            const activityType = row.querySelector('.activity-type-cell')?.textContent.trim() || "Task";
+            const primaryFocus = row.querySelector('.primary-focus-cell')?.textContent.trim() || "Details";
+            let prompt = customPromptPrefix 
+                ? `${customPromptPrefix} ${notesInput.value.trim()} Context: "${activityType} - ${primaryFocus}". Provide actionable points.`
+                : `Generate 3-5 concise study points for: "${activityType} - ${primaryFocus}". Focus on actionable steps.`;
+            
+            const originalButtonText = buttonElement.innerHTML;
+            buttonElement.innerHTML = 'Generating... <div class="loader"></div>'; buttonElement.disabled = true;
+            const suggestions = await callGeminiAPI(prompt);
+            const currentNotes = notesInput.value.trim();
+            notesInput.value = currentNotes + (currentNotes ? "\n\n✨ AI Suggestions:\n" : "✨ AI Suggestions:\n") + suggestions;
+            buttonElement.innerHTML = originalButtonText; buttonElement.disabled = false;
+            savePlannerData(); 
+        }
+
+        async function generateTopicInsights(buttonElement, topicName) {
+            const topicCard = buttonElement.closest('.topic-card'); if (!topicCard) return;
+            const notesInput = topicCard.querySelector('.notes-input.topic-notes'); if (!notesInput) return;
+            const prompt = `Provide a brief overview (2-3 sentences), key concepts (3-5 bullet points), and 1-2 suggested learning resources for: "${topicName}". Format clearly.`;
+            const originalButtonText = buttonElement.innerHTML;
+            buttonElement.innerHTML = 'Fetching... <div class="loader"></div>'; buttonElement.disabled = true;
+            const insights = await callGeminiAPI(prompt);
+            const currentNotes = notesInput.value.trim();
+            notesInput.value = currentNotes + (currentNotes ? "\n\n✨ AI Topic Insights:\n" : "✨ AI Topic Insights:\n") + insights;
+            buttonElement.innerHTML = originalButtonText; buttonElement.disabled = false;
+            savePlannerData(); updateTopicProgressBars(); 
+        }
+
+        async function generateWeeklyPlan(buttonElement, weekInfo) {
+            const notesCell = buttonElement.closest('.notes-cell'); if (!notesCell) return;
+            const notesInput = notesCell.querySelector('.notes-input'); if(!notesInput) return;
+            const prompt = `For week focus: "${weekInfo}", generate a brief study plan: 2-3 main goals for the week & a concise daily focus tip (Mon-Fri). Format clearly.`;
+            const originalButtonText = buttonElement.innerHTML;
+            buttonElement.innerHTML = 'Planning... <div class="loader"></div>'; buttonElement.disabled = true;
+            const plan = await callGeminiAPI(prompt);
+            const currentNotes = notesInput.value.trim();
+            notesInput.value = currentNotes + (currentNotes ? "\n\n✨ AI Weekly Plan:\n" : "✨ AI Weekly Plan:\n") + plan;
+            buttonElement.innerHTML = originalButtonText; buttonElement.disabled = false;
+            savePlannerData();
+        }
+
+    </script>
+</body>
+</html>
