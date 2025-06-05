@@ -1,5 +1,7 @@
 # AI_Study_Planner
-✨ AI Study Planner ft. Gemini API 🚀🧠  Elevate your study game with this intelligent, interactive planner! 
+✨ AI Study Planner ft. Gemini API 🚀🧠  
+
+Elevate your study game with this intelligent, interactive planner! 
 This interactive planner uses Google's Gemini API to deliver AI-generated study points, topic insights, and planning assistance.
 This project demonstrates how cutting-edge AI can be practically integrated for a personalized and more effective study experience.
 
